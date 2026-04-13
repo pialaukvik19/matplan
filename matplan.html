@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pias Matplan</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #F5F0E8;
+    --ink: #1A1612;
+    --muted: #8A7F74;
+    --accent: #C4622D;
+    --accent-light: #F0D5C8;
+    --green: #4A7C59;
+    --green-light: #D4E8DA;
+    --gold: #C49A2D;
+    --gold-light: #F5EAC8;
+    --border: #E5DDD4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 28px 24px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  .header h1 em {
+    font-style: italic;
+    color: #C4A882;
+  }
+
+  .header-sub {
+    font-size: 11px;
+    color: #8A7F74;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .tab-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--cream);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .tab-btn.active, .tab-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* DAY STRIP */
+  .day-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .day-strip::-webkit-scrollbar { display: none; }
+
+  .day-chip {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    min-width: 58px;
+  }
+
+  .day-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .day-chip.today {
+    border-color: #C4A882;
+  }
+
+  .day-chip-name {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #8A7F74;
+    display: block;
+  }
+
+  .day-chip.active .day-chip-name { color: rgba(255,255,255,0.8); }
+
+  .day-chip-num {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--cream);
+    display: block;
+    line-height: 1.1;
+  }
+
+  .day-chip-tag {
+    font-size: 9px;
+    color: #C4A882;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* MAIN CONTENT */
+  .content {
+    padding: 20px 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* DAY VIEW */
+  .day-view { display: none; }
+  .day-view.active { display: block; }
+
+  .day-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .day-title {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .day-training {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--green-light);
+    color: var(--green);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin-top: 8px;
+  }
+
+  .day-training.rest {
+    background: var(--warm-white);
+    color: var(--muted);
+  }
+
+  /* MACRO SUMMARY BAR */
+  .macro-bar {
+    background: var(--ink);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 0;
+  }
+
+  .macro-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .macro-item:not(:last-child) {
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .macro-val {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--cream);
+    display: block;
+  }
+
+  .macro-val.kcal { color: #C4A882; }
+  .macro-val.protein { color: #7BC4A0; }
+  .macro-val.fiber { color: #A0B4C4; }
+
+  .macro-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #5A5550;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* MEAL CARDS */
+  .meal-section {
+    margin-bottom: 12px;
+  }
+
+  .meal-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 0.15s;
+  }
+
+  .meal-card:active { transform: scale(0.99); }
+
+  .meal-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .meal-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .meal-icon.frokost { background: var(--gold-light); }
+  .meal-icon.lunsj { background: var(--green-light); }
+  .meal-icon.snack { background: var(--accent-light); }
+  .meal-icon.middag { background: #E8E0F5; }
+  .meal-icon.ekstra { background: #F5E8E0; }
+  .meal-icon.kvelds { background: #E0E8F5; }
+
+  .meal-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .meal-type {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+  }
+
+  .meal-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    display: block;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .meal-macros {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .meal-kcal {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--ink);
+  }
+
+  .meal-expand {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+    margin-left: 4px;
+  }
+
+  .meal-card.open .meal-expand { transform: rotate(180deg); }
+
+  .meal-detail {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .meal-card.open .meal-detail { display: block; }
+
+  .meal-detail-top {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--warm-white);
+    margin-bottom: 12px;
+  }
+
+  .detail-macro {
+    flex: 1;
+    text-align: center;
+    background: var(--warm-white);
+    border-radius: 10px;
+    padding: 8px 4px;
+  }
+
+  .detail-macro-val {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 300;
+    display: block;
+  }
+
+  .detail-macro-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .ingredients-title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .ingredient-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--warm-white);
+    font-size: 13px;
+  }
+
+  .ingredient-row:last-child { border-bottom: none; }
+
+  .ingredient-name { color: var(--ink); }
+  .ingredient-amount { color: var(--muted); font-size: 12px; }
+
+  .meal-note {
+    background: var(--gold-light);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #7A5A1A;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  .meal-note::before {
+    content: "💡 ";
+  }
+
+  /* IRON REMINDER */
+  .iron-reminder {
+    background: var(--accent-light);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+
+  /* SHOPPING LIST VIEW */
+  .shop-view { display: none; }
+  .shop-view.active { display: block; }
+
+  .shop-section {
+    margin-bottom: 24px;
+  }
+
+  .shop-section-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .shop-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--warm-white);
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .shop-item.checked {
+    opacity: 0.4;
+  }
+
+  .shop-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 12px;
+  }
+
+  .shop-item.checked .shop-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  .shop-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .shop-amount {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .shop-reset {
+    width: 100%;
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.2s;
+  }
+
+  .shop-reset:hover {
+    background: var(--border);
+    color: var(--ink);
+  }
+
+  /* DAILY NOTE */
+  .daily-note {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .daily-note-title {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8A7F74;
+    margin-bottom: 6px;
+  }
+
+  /* TRAN REMINDER */
+  .tran-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #D4E8DA;
+    color: var(--green);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 20px;
+  }
+
+  .bottom-space { height: 40px; }
+
+  /* WEEK BUTTONS */
+  .week-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--cream);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .week-btn.active {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.4);
+    font-weight: 500;
+  }
+
+  /* RECIPE VIEW */
+  .recipe-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .recipe-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .recipe-emoji {
+    font-size: 32px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+
+  .recipe-emoji.sotpotet { background: var(--gold-light); }
+  .recipe-emoji.taco { background: var(--accent-light); }
+  .recipe-emoji.gryte { background: #EAD5F0; }
+
+  .recipe-meta { flex: 1; }
+
+  .recipe-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--ink);
+    display: block;
+  }
+
+  .recipe-sub {
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-top: 3px;
+  }
+
+  .recipe-expand {
+    color: var(--muted);
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+
+  .recipe-card.open .recipe-expand { transform: rotate(180deg); }
+
+  .recipe-body {
+    display: none;
+    padding: 0 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .recipe-card.open .recipe-body { display: block; }
+
+  .recipe-macros {
+    display: flex;
+    gap: 0;
+    background: var(--ink);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 14px 0;
+  }
+
+  .recipe-macro-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .recipe-macro-item:not(:last-child) {
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .recipe-macro-val {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 300;
+    display: block;
+  }
+
+  .recipe-macro-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #5A5550;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .recipe-section-title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 14px 0 8px;
+  }
+
+  .recipe-ingredient {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--warm-white);
+    font-size: 13px;
+  }
+
+  .recipe-ingredient:last-child { border-bottom: none; }
+  .recipe-ingredient-name { color: var(--ink); }
+  .recipe-ingredient-amount { color: var(--muted); }
+
+  .recipe-step {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--warm-white);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .recipe-step:last-child { border-bottom: none; }
+
+  .recipe-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .recipe-tip {
+    background: var(--gold-light);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #7A5A1A;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+
+  .recipe-tip::before { content: "💡 "; }
+
+  .recipe-storage {
+    background: var(--green-light);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--green);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .recipe-storage::before { content: "📦 "; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Pias <em>matplan</em></h1>
+      <div class="header-sub">7-dagers optimalisert plan</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="tab-btn active" onclick="showTab('days')">Dager</button>
+      <button class="tab-btn" onclick="showTab('shop')">Handle</button>
+      <button class="tab-btn" onclick="showTab('recipes')">Oppskrifter</button>
+    </div>
+  </div>
+
+  <!-- WEEK SELECTOR -->
+  <div id="weekSelector" style="margin-bottom:12px;">
+    <div style="display:flex;gap:8px;">
+      <button class="week-btn active" id="weekBtn1" onclick="selectWeek(1)">Uke 1</button>
+      <button class="week-btn" id="weekBtn2" onclick="selectWeek(2)">Uke 2</button>
+    </div>
+    <div style="font-size:10px;color:#8A7F74;letter-spacing:0.5px;margin-top:6px;" id="weekLabel">Torsdag – Søndag · Taco bowl</div>
+  </div>
+
+  <div class="day-strip" id="dayStrip"></div>
+</div>
+
+<div class="content">
+
+  <!-- DAY VIEWS -->
+  <div id="daysContainer"></div>
+
+  <!-- SHOPPING LIST -->
+  <div class="shop-view" id="shopView">
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="tab-btn active" id="shopBtn1" onclick="showShopList(1)" style="flex:1;border-radius:12px;padding:10px;">Denne uka</button>
+      <button class="tab-btn" id="shopBtn2" onclick="showShopList(2)" style="flex:1;border-radius:12px;padding:10px;">Neste helg 🆕</button>
+    </div>
+    <div id="shopContent"></div>
+    <div id="shopContent2" style="display:none"></div>
+  </div>
+
+  <!-- RECIPES -->
+  <div class="shop-view" id="recipesView">
+    <div id="recipesContent"></div>
+  </div>
+
+</div>
+
+<script>
+const days = [
+  {
+    name: "Mandag",
+    short: "Man",
+    num: 1,
+    week: 2,
+    training: "HIIT",
+    trainIcon: "🔥",
+    kcal: 2030, protein: 161, fiber: 34,
+    ironDay: true,
+    note: "Hard HIIT-dag — spis nok! Kasein til kvelds støtter muskelreparasjon hele natten.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ],
+        note: "Rør cottage cheese inn i yoghurten — gir ekstra protein uten søt smak. Syrlig og godt! Ta tran-kapselen til maten."
+      },
+      {
+        type: "Lunsj", icon: "🐟", iconClass: "lunsj",
+        name: "Jobblunsj m/makrell",
+        kcal: 485, protein: 30, fiber: 8.5,
+        ingredients: [
+          { name: "Knekkebrød Husmann", amount: "2 stk" },
+          { name: "Makrell i tomat (blå kant)", amount: "125g" },
+          { name: "Grovbrødskive", amount: "1 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Sylteagurk + grønnsaker", amount: "etter smak" }
+        ],
+        note: "Unngå kaffe/te de første 60 min etter lunsj — øker jernopptaket fra makrell og leverpostei."
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ],
+        note: "Perfekt ettermiddagssnack — holder deg stabil frem til middag."
+      },
+      {
+        type: "Middag", icon: "🍠", iconClass: "middag",
+        name: "Hot honey søtpotet bowl",
+        kcal: 620, protein: 23, fiber: 13,
+        ingredients: [
+          { name: "Søtpotet (bakt)", amount: "240g ferdig stekt (≈300g rå)" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Kikerter (sprøstekt)", amount: "100g" },
+          { name: "Rucola/babyspinat", amount: "50g" },
+          { name: "Avokado", amount: "¼ stk" },
+          { name: "Hot honey (honning + chiliflak)", amount: "1 ss" },
+          { name: "Sesamfrø + limejuice", amount: "litt" }
+        ],
+        note: "Søtpotet + kikerter er jernrike. Paprika/lime gir C-vitamin som øker opptaket."
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Stor gresk yoghurt + bær + nøttetopping",
+        kcal: 420, protein: 41, fiber: 5,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "400g" },
+          { name: "Bær (frosne/ferske)", amount: "80g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" }
+        ],
+        note: "Større porsjon etter hard HIIT-dag. Kasein metter hele natten og støtter muskelreparasjon. 💪"
+      }
+    ]
+  },
+  {
+    name: "Tirsdag",
+    short: "Tir",
+    num: 2,
+    week: 2,
+    training: "Pilates HIIT",
+    trainIcon: "🔥",
+    kcal: 2245, protein: 171, fiber: 42.5,
+    ironDay: false,
+    note: "Dobbel treningsdag — styrke + pilates HIIT! Edamame til middag gir ekstra protein og fiber siden lunsjen er litt lettere i dag.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ],
+        note: "Fast frokost — ingen beslutninger nødvendig om morgenen."
+      },
+      {
+        type: "Lunsj", icon: "🍗", iconClass: "lunsj",
+        name: "Jobblunsj kylling-variant",
+        kcal: 395, protein: 19, fiber: 10,
+        ingredients: [
+          { name: "Grovbrødskiver", amount: "3 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Kylling (pålegg/strips)", amount: "60g" },
+          { name: "Sennep", amount: "1 ts" },
+          { name: "Spirer + grønt", amount: "etter smak" }
+        ],
+        note: "Unngå kaffe/te de første 60 min etter lunsj — leverposteien er jernkilde."
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Ekstra", icon: "🍌", iconClass: "ekstra",
+        name: "Banan + peanøttsmør (pre-styrke)",
+        kcal: 195, protein: 5, fiber: 3,
+        ingredients: [
+          { name: "Banan", amount: "1 stk" },
+          { name: "Peanøttsmør (naturlig)", amount: "20g" }
+        ],
+        note: "Spis 45 min før styrkeøkten — gir stabilt blodsukker og energi gjennom dobbel treningsdag."
+      },
+      {
+        type: "Middag", icon: "🍠", iconClass: "middag",
+        name: "Søtpotet bowl + edamame",
+        kcal: 800, protein: 46, fiber: 20,
+        ingredients: [
+          { name: "Søtpotet (bakt)", amount: "160g ferdig stekt (≈200g rå)" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Kikerter (sprøstekt)", amount: "100g" },
+          { name: "Edamame", amount: "200g" },
+          { name: "Rucola/babyspinat", amount: "50g" },
+          { name: "Avokado", amount: "¼ stk" },
+          { name: "Hot honey", amount: "1 ss" }
+        ],
+        note: "Edamame kompenserer for lettere lunsj i dag — gir 24g ekstra protein og 9g fiber."
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Gresk yoghurt + bær + nøttetopping",
+        kcal: 330, protein: 31, fiber: 5,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Bær", amount: "50g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" }
+        ],
+        note: "Kasein etter hard økt — byttet fra tunfisk til yoghurt nettopp for dette. Optimal muskelreparasjon."
+      }
+    ]
+  },
+  {
+    name: "Onsdag",
+    short: "Ons",
+    num: 3,
+    week: 2,
+    training: "Hviledag",
+    trainIcon: "😴",
+    isRest: true,
+    kcal: 1895, protein: 148, fiber: 31,
+    ironDay: true,
+    note: "Hviledag = lavere kalorier er naturlig og riktig. Kroppen reparerer seg — spis rolig og nyt maten.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🐟", iconClass: "lunsj",
+        name: "Jobblunsj m/makrell",
+        kcal: 485, protein: 30, fiber: 8.5,
+        ingredients: [
+          { name: "Knekkebrød Husmann", amount: "2 stk" },
+          { name: "Makrell i tomat (blå kant)", amount: "125g" },
+          { name: "Grovbrødskive", amount: "1 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Sylteagurk + grønnsaker", amount: "etter smak" }
+        ],
+        note: "Unngå kaffe/te de første 60 min etter lunsj."
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Middag", icon: "🍠", iconClass: "middag",
+        name: "Hot honey søtpotet bowl",
+        kcal: 520, protein: 22, fiber: 11,
+        ingredients: [
+          { name: "Søtpotet (bakt)", amount: "160g ferdig stekt (≈200g rå)" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Kikerter (sprøstekt)", amount: "100g" },
+          { name: "Rucola/babyspinat", amount: "50g" },
+          { name: "Avokado", amount: "¼ stk" },
+          { name: "Hot honey", amount: "1 ss" }
+        ],
+        note: "Siste dag med søtpotet bowl — i morgen skifter vi til taco!"
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Tunfisk bowl + knekkebrød",
+        kcal: 245, protein: 25, fiber: 5,
+        ingredients: [
+          { name: "King Oscar thai chili tunfisk", amount: "1 boks (85g)" },
+          { name: "Gresk yoghurt", amount: "2 ss" },
+          { name: "Agurk", amount: "½ stk" },
+          { name: "Knekkebrød Husmann", amount: "2 stk" }
+        ],
+        note: "Ekstra knekkebrød gir litt mer fiber og volum på hviledag — metter uten å overdrive kaloriene."
+      }
+    ]
+  },
+  {
+    name: "Torsdag",
+    short: "Tor",
+    num: 4,
+    week: 1,
+    training: "Intervaller 30 min",
+    trainIcon: "🏃",
+    kcal: 1980, protein: 147, fiber: 29.5,
+    ironDay: false,
+    note: "Kortere økt i dag — litt lavere kaloribehov. Banan + peanøttsmør gir god energi pre- eller post-intervaller.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🍗", iconClass: "lunsj",
+        name: "Jobblunsj kylling-variant",
+        kcal: 395, protein: 19, fiber: 10,
+        ingredients: [
+          { name: "Grovbrødskiver", amount: "3 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Kylling (pålegg/strips)", amount: "60g" },
+          { name: "Sennep", amount: "1 ts" },
+          { name: "Spirer + grønt", amount: "etter smak" }
+        ]
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Middag", icon: "🌮", iconClass: "middag",
+        name: "Taco bowl",
+        kcal: 545, protein: 37, fiber: 10,
+        ingredients: [
+          { name: "Karbonadedeig (ferdig batch)", amount: "77g ferdig stekt (≈100g rå)" },
+          { name: "Cottage cheese", amount: "50g" },
+          { name: "Kidney-bønner", amount: "60g" },
+          { name: "Mais", amount: "40g" },
+          { name: "Isbergsalat", amount: "stor håndfull" },
+          { name: "Paprika", amount: "½ stk" },
+          { name: "Tomat + rødløk", amount: "etter smak" },
+          { name: "Rømme 10%", amount: "2 ss" },
+          { name: "Tortillachips", amount: "30g" },
+          { name: "Salsa + limejuice", amount: "etter smak" }
+        ],
+        note: "Paprika er C-vitamin — øker jernopptaket fra bønnene og kjøttet. Alltid med!"
+      },
+      {
+        type: "Ekstra", icon: "🍌", iconClass: "ekstra",
+        name: "Banan + peanøttsmør",
+        kcal: 195, protein: 5, fiber: 3,
+        ingredients: [
+          { name: "Banan", amount: "1 stk" },
+          { name: "Peanøttsmør (naturlig)", amount: "20g" }
+        ],
+        note: "Spis pre-trening (45 min før) eller som dessert etter middag."
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Ninja Creami",
+        kcal: 200, protein: 15, fiber: 0,
+        ingredients: [
+          { name: "Lettmelk", amount: "250ml" },
+          { name: "Proteinpulver", amount: "6–10g" }
+        ],
+        note: "Fortjent søt avslutning på torsdagen. 🍦"
+      }
+    ]
+  },
+  {
+    name: "Fredag",
+    short: "Fre",
+    num: 5,
+    week: 1,
+    training: "Power pilates",
+    trainIcon: "🧘",
+    kcal: 2360, protein: 194, fiber: 30,
+    ironDay: true,
+    note: "Dobbel treningsdag — løp om morgenen + power pilates! Banan pre-løp er viktig i dag.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🐟", iconClass: "lunsj",
+        name: "Jobblunsj m/makrell",
+        kcal: 485, protein: 30, fiber: 8.5,
+        ingredients: [
+          { name: "Knekkebrød Husmann", amount: "2 stk" },
+          { name: "Makrell i tomat (blå kant)", amount: "125g" },
+          { name: "Grovbrødskive", amount: "1 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Sylteagurk + grønnsaker", amount: "etter smak" }
+        ],
+        note: "Siste jobblunsj i uka — unngå kaffe/te de første 60 min etter."
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Ekstra", icon: "🍌", iconClass: "ekstra",
+        name: "Banan + peanøttsmør (pre-løp)",
+        kcal: 195, protein: 5, fiber: 3,
+        ingredients: [
+          { name: "Banan", amount: "1 stk" },
+          { name: "Peanøttsmør (naturlig)", amount: "20g" }
+        ],
+        note: "Spis 45 min før løpeøkten om morgenen — lett karbo + fett holder deg gjennom dobbel treningsdag."
+      },
+      {
+        type: "Middag", icon: "🌮", iconClass: "middag",
+        name: "Taco bowl",
+        kcal: 545, protein: 37, fiber: 10,
+        ingredients: [
+          { name: "Karbonadedeig (ferdig batch)", amount: "77g ferdig stekt (≈100g rå)" },
+          { name: "Cottage cheese", amount: "50g" },
+          { name: "Kidney-bønner", amount: "60g" },
+          { name: "Mais", amount: "40g" },
+          { name: "Isbergsalat + grønnsaker", amount: "etter smak" },
+          { name: "Paprika", amount: "½ stk" },
+          { name: "Rømme 10%", amount: "2 ss" },
+          { name: "Tortillachips", amount: "30g" },
+          { name: "Salsa + limejuice", amount: "etter smak" }
+        ]
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Havregrøt 🌙",
+        kcal: 580, protein: 37, fiber: 10,
+        ingredients: [
+          { name: "Havregryn", amount: "50g" },
+          { name: "Whey isolat", amount: "20g" },
+          { name: "Egg (rørt inn)", amount: "1 stk" },
+          { name: "Vann", amount: "200ml" },
+          { name: "Eple (hakket)", amount: "1 stk" },
+          { name: "Mørk sjokolade (70%+, hakket)", amount: "20g" }
+        ],
+        note: "Mer mettende enn tunfisk bowl etter power pilates — kasein + whey kombinert er optimalt for muskelreparasjon. God helg! 🎉"
+      }
+    ]
+  },
+  {
+    name: "Lørdag",
+    short: "Lør",
+    num: 6,
+    week: 1,
+    training: "Intervall/løpetur",
+    trainIcon: "🏃",
+    kcal: 2070, protein: 162, fiber: 29,
+    ironDay: false,
+    note: "Helgedag! Større snack i dag siden vi slår sammen to til ett skikkelig mellommåltid. Nyt løpeturen.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🥑", iconClass: "lunsj",
+        name: "Egg + avokado + brød",
+        kcal: 420, protein: 22, fiber: 6,
+        ingredients: [
+          { name: "Egg (scrambled)", amount: "2 stk" },
+          { name: "Grovbrødskiver", amount: "2 stk" },
+          { name: "Avokado", amount: "½ stk" },
+          { name: "Tomat", amount: "1 stk" },
+          { name: "Salt, pepper, ev. chiliflak", amount: "etter smak" }
+        ],
+        note: "Skikkelig helgelunsj-vibb. Ta deg god tid. ☀️"
+      },
+      {
+        type: "Snack", icon: "🍌", iconClass: "snack",
+        name: "Stor yoghurt bowl",
+        kcal: 490, protein: 33, fiber: 5,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Hjemmelaget granola", amount: "30g" },
+          { name: "Banan", amount: "1 stk" },
+          { name: "Nøttegranola (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "25g" }
+        ],
+        note: "Slår sammen to snacks til én ordentlig. Spis etter løpeturen som recovery-måltid."
+      },
+      {
+        type: "Middag", icon: "🌮", iconClass: "middag",
+        name: "Taco bowl",
+        kcal: 545, protein: 37, fiber: 10,
+        ingredients: [
+          { name: "Karbonadedeig (ferdig batch)", amount: "77g ferdig stekt (≈100g rå)" },
+          { name: "Cottage cheese", amount: "50g" },
+          { name: "Kidney-bønner", amount: "60g" },
+          { name: "Mais", amount: "40g" },
+          { name: "Isbergsalat + grønnsaker", amount: "etter smak" },
+          { name: "Paprika", amount: "½ stk" },
+          { name: "Rømme 10%", amount: "2 ss" },
+          { name: "Tortillachips", amount: "30g" },
+          { name: "Salsa + limejuice", amount: "etter smak" }
+        ]
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Tunfisk + agurk + knekkebrød",
+        kcal: 185, protein: 23, fiber: 4,
+        ingredients: [
+          { name: "King Oscar thai chili tunfisk", amount: "1 boks (85g)" },
+          { name: "Agurk", amount: "½ stk" },
+          { name: "Knekkebrød Husmann", amount: "2 stk" }
+        ],
+        note: "Lett kvelds — ingen yoghurt i dag siden du allerede har hatt mye av det. Fin variasjon."
+      }
+    ]
+  },
+  {
+    name: "Søndag",
+    short: "Søn",
+    num: 7,
+    week: 1,
+    training: "Styrkeøkt 💪",
+    trainIcon: "💪",
+    kcal: 2325, protein: 157, fiber: 38,
+    ironDay: false,
+    note: "Tyngste økt = mest mat. Havregrøt etter styrke er det beste du kan gi kroppen for muskeloppbygging.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 47, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🥑", iconClass: "lunsj",
+        name: "3 egg + avokado + brød",
+        kcal: 490, protein: 28, fiber: 6,
+        ingredients: [
+          { name: "Egg (scrambled)", amount: "3 stk" },
+          { name: "Grovbrødskiver", amount: "2 stk" },
+          { name: "Avokado", amount: "½ stk" },
+          { name: "Tomat", amount: "1 stk" }
+        ],
+        note: "Et ekstra egg på styrkedagen — gir 6g mer protein uten ekstra innsats."
+      },
+      {
+        type: "Snack", icon: "🍫", iconClass: "snack",
+        name: "Mørk sjokolade + appelsin",
+        kcal: 270, protein: 5, fiber: 6,
+        ingredients: [
+          { name: "Mørk sjokolade (70%+)", amount: "40g" },
+          { name: "Appelsin", amount: "1 stk" }
+        ],
+        note: "Litt luksus på søndagen. C-vitamin fra appelsin + antioksidanter fra mørk sjokolade."
+      },
+      {
+        type: "Middag", icon: "🌮", iconClass: "middag",
+        name: "Taco bowl",
+        kcal: 545, protein: 37, fiber: 10,
+        ingredients: [
+          { name: "Karbonadedeig (ferdig batch)", amount: "77g ferdig stekt (≈100g rå)" },
+          { name: "Cottage cheese", amount: "50g" },
+          { name: "Kidney-bønner", amount: "60g" },
+          { name: "Mais", amount: "40g" },
+          { name: "Isbergsalat + grønnsaker", amount: "etter smak" },
+          { name: "Paprika", amount: "½ stk" },
+          { name: "Rømme 10%", amount: "2 ss" },
+          { name: "Tortillachips", amount: "30g" },
+          { name: "Salsa + limejuice", amount: "etter smak" }
+        ],
+        note: "30g chips gir litt ekstra crunch og kalorier på styrkedagen. 💪"
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Havregrøt full versjon 🌙",
+        kcal: 700, protein: 41, fiber: 13,
+        ingredients: [
+          { name: "Havregryn", amount: "60g" },
+          { name: "Whey isolat", amount: "30g" },
+          { name: "Egg (rørt inn)", amount: "1 stk" },
+          { name: "Vann", amount: "200ml" },
+          { name: "Bokhvete/byggryn (kokt)", amount: "30g" },
+          { name: "Eple (hakket)", amount: "1 stk" },
+          { name: "Mørk sjokolade (70%+, hakket)", amount: "20g" }
+        ],
+        note: "Fortjent og nødvendig etter styrkeøkt. Sjokolade + eple i varm grøt er helt magisk. 🍫"
+      }
+    ]
+  },
+  {
+    name: "Torsdag 2",
+    short: "Tor2",
+    num: 8,
+    week: 2,
+    training: "Intervaller 30 min",
+    trainIcon: "🏃",
+    kcal: 1980, protein: 148, fiber: 31,
+    ironDay: false,
+    note: "Ny uke, ny batch! Salciccia-gryta er klar fra søndag — og hvite bønner er en av de mest mettende matvarene som finnes.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 45, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🍗", iconClass: "lunsj",
+        name: "Jobblunsj kylling-variant",
+        kcal: 395, protein: 19, fiber: 10,
+        ingredients: [
+          { name: "Grovbrødskiver", amount: "3 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Kylling (pålegg/strips)", amount: "60g" },
+          { name: "Sennep", amount: "1 ts" },
+          { name: "Spirer + grønt", amount: "etter smak" }
+        ]
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Middag", icon: "🍲", iconClass: "middag",
+        name: "Salciccia e fagioli",
+        kcal: 530, protein: 34, fiber: 12,
+        ingredients: [
+          { name: "Salciccia-gryte (ferdig batch)", amount: "1 porsjon" },
+          { name: "Parmesan", amount: "10g revet over" },
+          { name: "Brød til å dyppe (valgfritt)", amount: "1 skive" }
+        ],
+        note: "Hvite bønner + spinat gir jern og fiber. Parmesan over gir ekstra smak og kalsium."
+      },
+      {
+        type: "Ekstra", icon: "🍌", iconClass: "ekstra",
+        name: "Banan + peanøttsmør",
+        kcal: 195, protein: 5, fiber: 3,
+        ingredients: [
+          { name: "Banan", amount: "1 stk" },
+          { name: "Peanøttsmør (naturlig)", amount: "20g" }
+        ],
+        note: "Spis pre-trening (45 min før) eller som dessert etter middag."
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Ninja Creami",
+        kcal: 200, protein: 15, fiber: 0,
+        ingredients: [
+          { name: "Lettmelk", amount: "250ml" },
+          { name: "Proteinpulver", amount: "6–10g" }
+        ],
+        note: "Fortjent søt avslutning. 🍦"
+      }
+    ]
+  },
+  {
+    name: "Fredag 2",
+    short: "Fre2",
+    num: 9,
+    week: 2,
+    training: "Løpetur + Power pilates",
+    trainIcon: "🧘",
+    kcal: 2360, protein: 194, fiber: 30,
+    ironDay: true,
+    note: "Dobbel treningsdag — løp om morgenen + power pilates! Banan pre-løp er viktig i dag.",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 45, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🐟", iconClass: "lunsj",
+        name: "Jobblunsj m/makrell",
+        kcal: 485, protein: 30, fiber: 8.5,
+        ingredients: [
+          { name: "Knekkebrød Husmann", amount: "2 stk" },
+          { name: "Makrell i tomat (blå kant)", amount: "125g" },
+          { name: "Grovbrødskive", amount: "1 stk" },
+          { name: "Leverpostei", amount: "30g" },
+          { name: "Sylteagurk + grønnsaker", amount: "etter smak" }
+        ],
+        note: "Unngå kaffe/te de første 60 min etter lunsj."
+      },
+      {
+        type: "Snack", icon: "🍎", iconClass: "snack",
+        name: "Cottage cheese + eple",
+        kcal: 215, protein: 24, fiber: 2.5,
+        ingredients: [
+          { name: "Cottage cheese", amount: "200g" },
+          { name: "Eple", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Ekstra", icon: "🍌", iconClass: "ekstra",
+        name: "Banan + peanøttsmør (pre-løp)",
+        kcal: 195, protein: 5, fiber: 3,
+        ingredients: [
+          { name: "Banan", amount: "1 stk" },
+          { name: "Peanøttsmør (naturlig)", amount: "20g" }
+        ],
+        note: "Spis 45 min før løpeøkten om morgenen — lett karbo + fett holder deg gjennom dobbel treningsdag."
+      },
+      {
+        type: "Middag", icon: "🍲", iconClass: "middag",
+        name: "Salciccia e fagioli",
+        kcal: 530, protein: 34, fiber: 12,
+        ingredients: [
+          { name: "Salciccia-gryte (ferdig batch)", amount: "1 porsjon" },
+          { name: "Parmesan", amount: "10g revet over" }
+        ],
+        note: "Unngå kaffe/te de første 60 min etter middag — jerndag i dag!"
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Havregrøt 🌙",
+        kcal: 580, protein: 37, fiber: 10,
+        ingredients: [
+          { name: "Havregryn", amount: "50g" },
+          { name: "Whey isolat", amount: "20g" },
+          { name: "Egg (rørt inn)", amount: "1 stk" },
+          { name: "Vann", amount: "200ml" },
+          { name: "Eple (hakket)", amount: "1 stk" },
+          { name: "Mørk sjokolade (70%+, hakket)", amount: "20g" }
+        ],
+        note: "Kasein + whey etter dobbel treningsdag — fortjent og nødvendig. God helg! 🎉"
+      }
+    ]
+  },
+  {
+    name: "Lørdag 2",
+    short: "Lør2",
+    num: 10,
+    week: 2,
+    training: "Intervall/løpetur",
+    trainIcon: "🏃",
+    kcal: 2070, protein: 155, fiber: 30,
+    ironDay: false,
+    note: "Helgedag! Stor snack etter løpeturen, og gryta er perfekt comfort food på lørdagskvelden. 🍲",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 45, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🥑", iconClass: "lunsj",
+        name: "Egg + avokado + brød",
+        kcal: 420, protein: 22, fiber: 6,
+        ingredients: [
+          { name: "Egg (scrambled)", amount: "2 stk" },
+          { name: "Grovbrødskiver", amount: "2 stk" },
+          { name: "Avokado", amount: "½ stk" },
+          { name: "Tomat", amount: "1 stk" }
+        ],
+        note: "Ta deg god tid til lunsjen i dag. ☀️"
+      },
+      {
+        type: "Snack", icon: "🍌", iconClass: "snack",
+        name: "Stor yoghurt bowl",
+        kcal: 490, protein: 33, fiber: 5,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Hjemmelaget granola", amount: "30g" },
+          { name: "Banan", amount: "1 stk" },
+          { name: "Nøttegranola (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "25g" }
+        ],
+        note: "Spis etter løpeturen som recovery-måltid."
+      },
+      {
+        type: "Middag", icon: "🍲", iconClass: "middag",
+        name: "Salciccia e fagioli",
+        kcal: 530, protein: 34, fiber: 12,
+        ingredients: [
+          { name: "Salciccia-gryte (ferdig batch)", amount: "1 porsjon" },
+          { name: "Parmesan", amount: "10g revet over" }
+        ],
+        note: "Smaker enda bedre dag 2–3! 🍲"
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Tunfisk + agurk + knekkebrød",
+        kcal: 185, protein: 23, fiber: 4,
+        ingredients: [
+          { name: "King Oscar thai chili tunfisk", amount: "1 boks (85g)" },
+          { name: "Agurk", amount: "½ stk" },
+          { name: "Knekkebrød Husmann", amount: "2 stk" }
+        ],
+        note: "Lett kvelds — du har spist godt i dag."
+      }
+    ]
+  },
+  {
+    name: "Søndag 2",
+    short: "Søn2",
+    num: 11,
+    week: 2,
+    training: "Styrkeøkt 💪",
+    trainIcon: "💪",
+    kcal: 2415, protein: 162, fiber: 46,
+    ironDay: false,
+    note: "Tyngste økt = mest mat. Husk å lage ny batch til neste uke (søtpotet bowl igjen eller noe nytt?) etter trening!",
+    meals: [
+      {
+        type: "Frokost", icon: "🥣", iconClass: "frokost",
+        name: "Yoghurt bowl + tran",
+        kcal: 430, protein: 45, fiber: 4,
+        ingredients: [
+          { name: "Gresk yoghurt 2%", amount: "300g" },
+          { name: "Cottage cheese", amount: "100g" },
+          { name: "Nøttetopping (pekannøtter, makadamia, mandler, solsikkekjerner)", amount: "20g" },
+          { name: "Frosne bær", amount: "100g" },
+          { name: "Kakaonibs", amount: "10g" },
+          { name: "Tran-kapsel", amount: "1 stk" }
+        ]
+      },
+      {
+        type: "Lunsj", icon: "🥑", iconClass: "lunsj",
+        name: "3 egg + avokado + brød",
+        kcal: 490, protein: 28, fiber: 6,
+        ingredients: [
+          { name: "Egg (scrambled)", amount: "3 stk" },
+          { name: "Grovbrødskiver", amount: "2 stk" },
+          { name: "Avokado", amount: "½ stk" },
+          { name: "Tomat", amount: "1 stk" }
+        ],
+        note: "Ekstra egg på styrkedagen — mer protein uten ekstra innsats."
+      },
+      {
+        type: "Snack", icon: "🍫", iconClass: "snack",
+        name: "Appelsin",
+        kcal: 60, protein: 1, fiber: 3,
+        ingredients: [
+          { name: "Appelsin", amount: "1 stk" }
+        ],
+        note: "Enkel og god snack — C-vitamin som hjelper jernopptaket. 🍊"
+      },
+      {
+        type: "Middag", icon: "🍲", iconClass: "middag",
+        name: "Salciccia e fagioli",
+        kcal: 620, protein: 36, fiber: 13,
+        ingredients: [
+          { name: "Salciccia-gryte (ferdig batch)", amount: "1 porsjon" },
+          { name: "Parmesan", amount: "15g revet over" },
+          { name: "Grovbrødskive", amount: "2 stk (til å dyppe)" }
+        ],
+        note: "Et par skiver brød til gryta er klassisk — enkelt og deilig. 🍞"
+      },
+      {
+        type: "Kvelds", icon: "🌙", iconClass: "kvelds",
+        name: "Havregrøt full versjon 🌙",
+        kcal: 590, protein: 40, fiber: 12,
+        ingredients: [
+          { name: "Havregryn", amount: "60g" },
+          { name: "Whey isolat", amount: "30g" },
+          { name: "Egg (rørt inn)", amount: "1 stk" },
+          { name: "Vann", amount: "200ml" },
+          { name: "Bokhvete/byggryn (kokt)", amount: "30g" },
+          { name: "Frukt/bær", amount: "100g" }
+        ],
+        note: "Fortjent og nødvendig etter styrkeøkt. 💪"
+      }
+    ]
+  }
+];
+
+const shopping = [
+  {
+    category: "🧊 Kjøleskap — basis",
+    items: [
+      { name: "Gresk yoghurt 2%", amount: "2,5 kg" },
+      { name: "Egg", amount: "12 stk" },
+      { name: "King Oscar thai chili tunfisk", amount: "4 bokser" },
+      { name: "Rømme 10%", amount: "1 boks" }
+    ]
+  },
+  {
+    category: "🍠 Grønnsaker og frukt",
+    items: [
+      { name: "Søtpotet", amount: "1 kg" },
+      { name: "Avokado", amount: "3 stk" },
+      { name: "Agurk", amount: "2 stk" },
+      { name: "Paprika", amount: "4 stk" },
+      { name: "Tomater", amount: "4 stk" },
+      { name: "Rødløk", amount: "1 stk" },
+      { name: "Isbergsalat", amount: "1 hode" },
+      { name: "Rucola / babyspinat", amount: "150g" },
+      { name: "Banan", amount: "3 stk" },
+      { name: "Appelsin", amount: "1 stk" },
+      { name: "Lime", amount: "2 stk" }
+    ]
+  },
+  {
+    category: "❄️ Frys",
+    items: [
+      { name: "Frosne bær (blåbær/bringebær)", amount: "500g" },
+      { name: "Edamame (frosne)", amount: "200g" }
+    ]
+  },
+  {
+    category: "🥫 Hermetikk og tørrmat",
+    items: [
+      { name: "Kikerter (hermetisk)", amount: "2 bokser" },
+      { name: "Kidney-bønner (hermetisk)", amount: "2 bokser" },
+      { name: "Mais (hermetisk)", amount: "1 boks" },
+      { name: "Hakkede tomater", amount: "1 boks" },
+      { name: "Tacokrydder", amount: "1 pakke" },
+      { name: "Salsa", amount: "1 glass" }
+    ]
+  },
+  {
+    category: "🍞 Brød og korn",
+    items: [
+      { name: "Tortillachips", amount: "1 pose" },
+      { name: "Havregryn", amount: "500g (har du fra før?)" }
+    ]
+  },
+  {
+    category: "🥩 Kjøtt — batch-cooking",
+    items: [
+      { name: "Karbonadedeig", amount: "400g" }
+    ]
+  },
+  {
+    category: "🫙 Tørrvarer og tilbehør",
+    items: [
+      { name: "Hjemmelaget granola", amount: "sjekk beholdning" },
+      { name: "Kakaonibs", amount: "sjekk beholdning" },
+      { name: "Whey isolat", amount: "sjekk beholdning" },
+      { name: "Peanøttsmør (naturlig)", amount: "1 glass" },
+      { name: "Mørk sjokolade 70%+", amount: "1 plate" },
+      { name: "Honning", amount: "sjekk beholdning" },
+      { name: "Chiliflak / cayenne", amount: "sjekk beholdning" },
+      { name: "Sesamfrø", amount: "liten pose" }
+    ]
+  },
+  {
+    category: "💊 Kosttilskudd",
+    items: [
+      { name: "Tran-kapsler (800–1000 IE D-vitamin)", amount: "kjøp hvis ikke har" }
+    ]
+  },
+  {
+    category: "🌮 Søtpotet bowl — ekstra",
+    items: [
+    ]
+  }
+];
+
+// WEEK CONFIG
+const weekConfig = {
+  1: { label: 'Torsdag – Søndag · Taco bowl', days: [3,4,5,6] },
+  2: { label: 'Mandag – Søndag · Søtpotet + Salciccia', days: [0,1,2,7,8,9,10] },
+};
+
+let currentWeek = 1;
+let currentDayIndex = 3; // first day of week 1
+
+// BUILD ALL DAY VIEWS (hidden by default)
+const container = document.getElementById('daysContainer');
+days.forEach((d, di) => {
+  const view = document.createElement('div');
+  view.className = 'day-view';
+  view.id = `day-${di}`;
+
+  const ironBadge = d.ironDay ? `
+    <div class="iron-reminder">
+      <span>🔴</span>
+      <span>Jerndag: unngå kaffe/te de første <strong>60 min</strong> etter lunsj og middag for optimalt jernopptak.</span>
+    </div>` : '';
+
+  const mealsHTML = d.meals.map((m, mi) => `
+    <div class="meal-section">
+      <div class="meal-card" id="meal-${di}-${mi}">
+        <div class="meal-header" onclick="toggleMeal(${di}, ${mi})">
+          <div class="meal-icon ${m.iconClass}">${m.icon}</div>
+          <div class="meal-meta">
+            <span class="meal-type">${m.type}</span>
+            <span class="meal-name">${m.name}</span>
+          </div>
+          <div class="meal-macros">
+            <span class="meal-kcal">${m.kcal} kcal</span>
+            <span class="meal-expand">▾</span>
+          </div>
+        </div>
+        <div class="meal-detail">
+          <div class="meal-detail-top">
+            <div class="detail-macro">
+              <span class="detail-macro-val" style="color:#C4622D">${m.kcal}</span>
+              <span class="detail-macro-label">kcal</span>
+            </div>
+            <div class="detail-macro">
+              <span class="detail-macro-val" style="color:#4A7C59">${m.protein}g</span>
+              <span class="detail-macro-label">protein</span>
+            </div>
+            <div class="detail-macro">
+              <span class="detail-macro-val" style="color:#5A7A9A">${m.fiber}g</span>
+              <span class="detail-macro-label">fiber</span>
+            </div>
+          </div>
+          <div class="ingredients-title">Ingredienser</div>
+          ${m.ingredients.map(ing => `
+            <div class="ingredient-row">
+              <span class="ingredient-name">${ing.name}</span>
+              <span class="ingredient-amount">${ing.amount}</span>
+            </div>
+          `).join('')}
+          ${m.note ? `<div class="meal-note">${m.note}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  view.innerHTML = `
+    <div class="day-hero">
+      <div>
+        <div class="day-title">${d.name}</div>
+        <div class="day-training ${d.isRest ? 'rest' : ''}">${d.trainIcon} ${d.training}</div>
+      </div>
+    </div>
+    <div class="macro-bar">
+      <div class="macro-item">
+        <span class="macro-val kcal">${d.kcal}</span>
+        <span class="macro-label">kcal</span>
+      </div>
+      <div class="macro-item">
+        <span class="macro-val protein">${d.protein}g</span>
+        <span class="macro-label">protein</span>
+      </div>
+      <div class="macro-item">
+        <span class="macro-val fiber">${d.fiber}g</span>
+        <span class="macro-label">fiber</span>
+      </div>
+    </div>
+    <div class="tran-pill">💊 Husk tran-kapsel til frokosten</div>
+    ${ironBadge}
+    <div class="daily-note">
+      <div class="daily-note-title">Dagens tips</div>
+      ${d.note}
+    </div>
+    ${mealsHTML}
+    <div class="bottom-space"></div>
+  `;
+  container.appendChild(view);
+});
+
+function renderWeek(week) {
+  currentWeek = week;
+  const cfg = weekConfig[week];
+
+  // Update week buttons
+  document.querySelectorAll('.week-btn').forEach((b, i) => {
+    b.classList.toggle('active', i + 1 === week);
+  });
+  document.getElementById('weekLabel').textContent = cfg.label;
+
+  // Rebuild day strip
+  const strip = document.getElementById('dayStrip');
+  strip.innerHTML = '';
+  cfg.days.forEach((di, pos) => {
+    const d = days[di];
+    const chip = document.createElement('div');
+    chip.className = 'day-chip';
+    chip.id = `chip-${di}`;
+    chip.innerHTML = `
+      <span class="day-chip-name">${d.short.replace(/[0-9]/g, '')}</span>
+      <span class="day-chip-num">${d.num}</span>
+      <span class="day-chip-tag">${d.trainIcon}</span>
+    `;
+    chip.onclick = () => selectDay(di);
+    strip.appendChild(chip);
+  });
+
+  // Show first day of week
+  selectDay(cfg.days[0]);
+}
+
+function selectDay(di) {
+  currentDayIndex = di;
+  // Update chips
+  document.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'));
+  const chip = document.getElementById(`chip-${di}`);
+  if (chip) chip.classList.add('active');
+  // Update views
+  document.querySelectorAll('.day-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`day-${di}`).classList.add('active');
+}
+
+function selectWeek(week) {
+  renderWeek(week);
+}
+
+// Initial render
+renderWeek(2);
+
+// BUILD SHOPPING LIST
+const shopContent = document.getElementById('shopContent');
+let checkedItems = JSON.parse(localStorage.getItem('pia-shopping-checked') || '{}');
+
+function buildShopList() {
+  shopContent.innerHTML = '';
+  shopping.forEach((section, si) => {
+    const sec = document.createElement('div');
+    sec.className = 'shop-section';
+    const itemsHTML = section.items.map((item, ii) => {
+      const key = `${si}-${ii}`;
+      const checked = checkedItems[key] ? 'checked' : '';
+      return `
+        <div class="shop-item ${checked}" onclick="toggleShop('${key}')">
+          <div class="shop-check">${checked ? '✓' : ''}</div>
+          <span class="shop-name">${item.name}</span>
+          <span class="shop-amount">${item.amount}</span>
+        </div>
+      `;
+    }).join('');
+    sec.innerHTML = `
+      <div class="shop-section-title">${section.category}</div>
+      ${itemsHTML}
+    `;
+    shopContent.appendChild(sec);
+  });
+
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'shop-reset';
+  resetBtn.textContent = '↺ Nullstill handleliste';
+  resetBtn.onclick = () => {
+    checkedItems = {};
+    localStorage.setItem('pia-shopping-checked', '{}');
+    buildShopList();
+  };
+  shopContent.appendChild(resetBtn);
+  shopContent.appendChild(document.createElement('div')).className = 'bottom-space';
+}
+
+buildShopList();
+
+// SHOPPING LIST 2 — NESTE HELG
+const shopping2 = [
+  {
+    category: "🍲 Salciccia e fagioli — batch",
+    items: [
+      { name: "Salciccia (rå, stor)", amount: "1 stk (~200g)" },
+      { name: "Hvite bønner (hermetisk)", amount: "2 bokser" },
+      { name: "Hermetiske tomater", amount: "1 boks" },
+      { name: "Fryst spinat", amount: "200g" },
+      { name: "Løk", amount: "1 stk" },
+      { name: "Hvitløk", amount: "1 hode" },
+      { name: "Parmesan", amount: "liten bit (~50g)" },
+      { name: "Rosmarin (frisk eller tørket)", amount: "litt" },
+    ]
+  },
+  {
+    category: "🧊 Kjøleskap — basis neste uke",
+    items: [
+      { name: "Gresk yoghurt 2%", amount: "2,5 kg" },
+      { name: "Cottage cheese", amount: "600g" },
+      { name: "Egg", amount: "12 stk" },
+      { name: "King Oscar thai chili tunfisk", amount: "2 bokser" },
+      { name: "Rømme 10%", amount: "sjekk beholdning" },
+      { name: "Mørk sjokolade 70%+", amount: "1 plate" },
+    ]
+  },
+  {
+    category: "🍠 Grønnsaker og frukt",
+    items: [
+      { name: "Avokado", amount: "2 stk" },
+      { name: "Agurk", amount: "1 stk" },
+      { name: "Tomater", amount: "2 stk" },
+      { name: "Epler", amount: "4 stk" },
+      { name: "Banan", amount: "1 stk" },
+      { name: "Appelsin", amount: "1 stk" },
+      { name: "Lime", amount: "1 stk" },
+    ]
+  },
+  {
+    category: "❄️ Frys",
+    items: [
+      { name: "Frosne bær", amount: "sjekk beholdning" },
+    ]
+  },
+  {
+    category: "🍞 Brød og korn",
+    items: [
+      { name: "Havregryn", amount: "sjekk beholdning" },
+      { name: "Bokhvete/byggryn", amount: "sjekk beholdning" },
+    ]
+  },
+  {
+    category: "🫙 Tørrvarer",
+    items: [
+      { name: "Hjemmelaget granola", amount: "sjekk beholdning" },
+      { name: "Kakaonibs", amount: "sjekk beholdning" },
+      { name: "Whey isolat", amount: "sjekk beholdning" },
+      { name: "Peanøttsmør (naturlig)", amount: "sjekk beholdning" },
+    ]
+  },
+  {
+    category: "💊 Kosttilskudd",
+    items: [
+      { name: "Tran-kapsler", amount: "sjekk beholdning" },
+    ]
+  },
+];
+
+let checkedItems2 = JSON.parse(localStorage.getItem('pia-shopping-checked-2') || '{}');
+
+function buildShopList2() {
+  const container = document.getElementById('shopContent2');
+  container.innerHTML = '';
+  shopping2.forEach((section, si) => {
+    const sec = document.createElement('div');
+    sec.className = 'shop-section';
+    const itemsHTML = section.items.map((item, ii) => {
+      const key = `${si}-${ii}`;
+      const checked = checkedItems2[key] ? 'checked' : '';
+      return `
+        <div class="shop-item ${checked}" onclick="toggleShop2('${key}')">
+          <div class="shop-check">${checked ? '✓' : ''}</div>
+          <span class="shop-name">${item.name}</span>
+          <span class="shop-amount">${item.amount}</span>
+        </div>
+      `;
+    }).join('');
+    sec.innerHTML = `<div class="shop-section-title">${section.category}</div>${itemsHTML}`;
+    container.appendChild(sec);
+  });
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'shop-reset';
+  resetBtn.textContent = '↺ Nullstill handleliste';
+  resetBtn.onclick = () => {
+    checkedItems2 = {};
+    localStorage.setItem('pia-shopping-checked-2', '{}');
+    buildShopList2();
+  };
+  container.appendChild(resetBtn);
+  container.appendChild(Object.assign(document.createElement('div'), {className: 'bottom-space'}));
+}
+
+buildShopList2();
+
+function toggleShop2(key) {
+  checkedItems2[key] = !checkedItems2[key];
+  localStorage.setItem('pia-shopping-checked-2', JSON.stringify(checkedItems2));
+  buildShopList2();
+}
+
+function showShopList(n) {
+  document.getElementById('shopBtn1').classList.toggle('active', n === 1);
+  document.getElementById('shopBtn2').classList.toggle('active', n === 2);
+  document.getElementById('shopContent').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('shopContent2').style.display = n === 2 ? 'block' : 'none';
+}
+function toggleMeal(di, mi) {
+  const card = document.getElementById(`meal-${di}-${mi}`);
+  card.classList.toggle('open');
+}
+
+function toggleShop(key) {
+  checkedItems[key] = !checkedItems[key];
+  localStorage.setItem('pia-shopping-checked', JSON.stringify(checkedItems));
+  buildShopList();
+}
+
+// RECIPES
+const recipes = [
+  {
+    id: 'sotpotet',
+    emoji: '🍠',
+    emojiClass: 'sotpotet',
+    title: 'Hot Honey Søtpotet Bowl',
+    sub: 'Batch A · 4 porsjoner · ca. 30 min',
+    kcal: 520, protein: 22, fiber: 11,
+    batchNote: 'Lag søndag — holder man–ons i kjøleskap',
+    ingredients: [
+      { name: 'Søtpotet', amount: '800g rå (→ 640g stekt)' },
+      { name: 'Cottage cheese 2%', amount: '400g' },
+      { name: 'Kikerter (hermetisk)', amount: '2 bokser (à 400g)' },
+      { name: 'Rucola / babyspinat', amount: '200g' },
+      { name: 'Avokado', amount: '1 stk (deles fersk per dag)' },
+      { name: 'Honning', amount: '4 ss' },
+      { name: 'Chiliflak', amount: '1 ts (juster etter smak)' },
+      { name: 'Cayennepepper', amount: 'litt' },
+      { name: 'Paprikakrydder', amount: '1 ts' },
+      { name: 'Sesamfrø', amount: '2 ts' },
+      { name: 'Lime', amount: '1 stk' },
+      { name: 'Olivenolje', amount: '1 ss' },
+      { name: 'Salt', amount: 'etter smak' },
+    ],
+    steps: [
+      'Varm ovnen til 220°C. Skjær søtpotet i biter (ca. 2–3 cm). Vend i olivenolje og salt. Stek 25–30 min til de er myke og litt karamelliserte i kantene.',
+      'Hell av kikerter og tørk dem godt med kjøkkenpapir. Stek i tørr panne på høy varme med paprikakrydder og litt salt i 7–8 min til de er sprø. Ryst pannen underveis.',
+      'Lag hot honey: varm honning forsiktig i liten kjele, rør inn chiliflak og cayenne. Ta av varmen og sett til side.',
+      'Fordel rucola/spinat i fire beholdere. Legg på søtpotet og kikerter. Sett i kjøleskap.',
+      'Når du skal spise: legg på 100g cottage cheese og ¼ avokado (fersk). Drypp hot honey over. Avslutt med sesamfrø og limejuice.',
+    ],
+    tip: 'Søtpotet og kikerter lager du batch. Avokado og cottage cheese legger du alltid på fersk — tar bare 2 minutter.',
+    storage: 'Søtpotet + kikerter: 4 dager i kjøleskap. Rucola: hold gjerne separat. Avokado: kjøp fersk eller ha en hel som du deler opp etter hvert.',
+  },
+  {
+    id: 'taco',
+    emoji: '🌮',
+    emojiClass: 'taco',
+    title: 'Taco Bowl',
+    sub: 'Batch B · 4 porsjoner · ca. 20 min',
+    kcal: 510, protein: 37, fiber: 14,
+    batchNote: 'Lag ons/tor — holder tor–søn i kjøleskap',
+    ingredients: [
+      { name: 'Karbonadedeig', amount: '400g rå (→ ~310g stekt)' },
+      { name: 'Tacokrydder', amount: '1 pakke' },
+      { name: 'Kidney-bønner (hermetisk)', amount: '2 bokser (à 400g)' },
+      { name: 'Mais (hermetisk)', amount: '1 boks' },
+      { name: 'Cottage cheese', amount: '200g (50g per porsjon)' },
+      { name: 'Isbergsalat', amount: '1 hode' },
+      { name: 'Paprika', amount: '2 stk' },
+      { name: 'Tomat', amount: '2 stk' },
+      { name: 'Rødløk', amount: '½ stk' },
+      { name: 'Rømme 10%', amount: '8 ss (2 per porsjon)' },
+      { name: 'Tortillachips', amount: '80g (20g per porsjon)' },
+      { name: 'Salsa', amount: 'etter smak' },
+      { name: 'Lime', amount: '1 stk' },
+    ],
+    steps: [
+      'Brun karbonadedeigen i panne på middels-høy varme. Smuldre godt mens du steker.',
+      'Tilsett tacokrydder og ca. 100ml vann. La det koke inn på lav varme i 3–4 min til sausen er tykk.',
+      'Hell av og skyll kidney-bønner. Tilsett bønner og mais i kjøttet de siste 2 min. Rør godt.',
+      'La kjøttblandingen kjøle seg ned, del i fire bokser og sett i kjøleskap.',
+      'Når du skal spise: legg isbergsalat i bunn, topp med kjøttblanding (varm opp i 1–2 min i panne eller mikro), paprika, tomat og rødløk. Legg på 50g cottage cheese og 2 ss rømme. Knus 20g chips over. Limejuice til slutt.',
+    ],
+    tip: 'Paprika er viktig — C-vitaminet øker jernopptaket fra kjøttet og bønnene. Ha alltid paprika i bowlen.',
+    storage: 'Kjøttblandingen: 4 dager i kjøleskap. Grønnsakene kuttes ferskt per porsjon — tar 2 min og gjør bowlen mye bedre.',
+  },
+  {
+    id: 'gryte',
+    emoji: '🍲',
+    emojiClass: 'gryte',
+    title: 'Salciccia e fagioli',
+    sub: 'Batch C · 4 porsjoner · ca. 25 min',
+    kcal: 530, protein: 34, fiber: 12,
+    batchNote: 'Lag søndag — holder tor–søn i kjøleskap',
+    ingredients: [
+      { name: 'Salciccia (rå)', amount: '200g (ca. 1 stor pølse)' },
+      { name: 'Hvite bønner (hermetisk)', amount: '2 bokser (à 400g)' },
+      { name: 'Fryst spinat', amount: '200g' },
+      { name: 'Hermetiske tomater', amount: '1 boks (400g)' },
+      { name: 'Løk', amount: '1 stk' },
+      { name: 'Hvitløk', amount: '3 fedd' },
+      { name: 'Parmesan', amount: '40g (10g per porsjon)' },
+      { name: 'Olivenolje', amount: '1 ss' },
+      { name: 'Chiliflak', amount: 'etter smak' },
+      { name: 'Salt + pepper', amount: 'etter smak' },
+      { name: 'Frisk rosmarin eller tørket', amount: '1 kvist / ½ ts' },
+    ],
+    steps: [
+      'Press salciccia-kjøttet ut av skinnet og smuldre det i biter. Stek i litt olivenolje på middels-høy varme til det er gjennomstekt og litt sprøtt, ca. 5–6 min. Ta ut og sett til side.',
+      'Stek finhakket løk i samme panne på middels varme i 4–5 min til myk og blank. Tilsett hvitløk og rosmarin, stek 1 min til.',
+      'Hell i hermetiske tomater. Rør godt og la det koke i 5 min.',
+      'Hell av og skyll hvite bønner. Tilsett bønner og stek kjøtt i sausen. La det småkoke 5 min.',
+      'Tilsett fryst spinat direkte. Rør til den er tint og integrert, ca. 2–3 min. Smak til med salt, pepper og chiliflak.',
+      'Avkjøl og del i fire bokser. Ved servering: varm opp og riv parmesan over.',
+    ],
+    tip: 'Salciccia alene gir masse smak — du trenger ikke mer kjøtt. Hvite bønner + spinat er jernrikt; kombiner gjerne med litt sitron ved servering for bedre jernopptak.',
+    storage: 'Holder 4–5 dager i kjøleskap. Smaker enda bedre dag 2 og 3 når smakene har satt seg. Kan også fryses.',
+  },
+];
+
+function buildRecipes() {
+  const container = document.getElementById('recipesContent');
+  container.innerHTML = '';
+
+  recipes.forEach((r, ri) => {
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    card.id = `recipe-${ri}`;
+
+    const ingHTML = r.ingredients.map(i => `
+      <div class="recipe-ingredient">
+        <span class="recipe-ingredient-name">${i.name}</span>
+        <span class="recipe-ingredient-amount">${i.amount}</span>
+      </div>
+    `).join('');
+
+    const stepsHTML = r.steps.map((s, si) => `
+      <div class="recipe-step">
+        <div class="recipe-step-num">${si + 1}</div>
+        <div>${s}</div>
+      </div>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="recipe-header" onclick="toggleRecipe(${ri})">
+        <div class="recipe-emoji ${r.emojiClass}">${r.emoji}</div>
+        <div class="recipe-meta">
+          <span class="recipe-title">${r.title}</span>
+          <span class="recipe-sub">${r.sub}</span>
+        </div>
+        <span class="recipe-expand">▾</span>
+      </div>
+      <div class="recipe-body">
+        <div class="recipe-macros">
+          <div class="recipe-macro-item">
+            <span class="recipe-macro-val" style="color:#C4A882">${r.kcal}</span>
+            <span class="recipe-macro-label">kcal</span>
+          </div>
+          <div class="recipe-macro-item">
+            <span class="recipe-macro-val" style="color:#7BC4A0">${r.protein}g</span>
+            <span class="recipe-macro-label">protein</span>
+          </div>
+          <div class="recipe-macro-item">
+            <span class="recipe-macro-val" style="color:#A0B4C4">${r.fiber}g</span>
+            <span class="recipe-macro-label">fiber</span>
+          </div>
+        </div>
+        <div class="recipe-section-title">Ingredienser — ${r.sub.split('·')[1].trim()}</div>
+        ${ingHTML}
+        <div class="recipe-section-title" style="margin-top:18px">Fremgangsmåte</div>
+        ${stepsHTML}
+        <div class="recipe-tip">${r.tip}</div>
+        <div class="recipe-storage">${r.storage}</div>
+        <div class="bottom-space"></div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+buildRecipes();
+
+function toggleRecipe(ri) {
+  const card = document.getElementById(`recipe-${ri}`);
+  card.classList.toggle('open');
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const daysContainer = document.getElementById('daysContainer');
+  const shopView = document.getElementById('shopView');
+  const recipesView = document.getElementById('recipesView');
+  const strip = document.getElementById('dayStrip');
+  const weekSel = document.getElementById('weekSelector');
+
+  daysContainer.style.display = 'none';
+  shopView.classList.remove('active');
+  recipesView.classList.remove('active');
+  strip.style.display = 'none';
+  weekSel.style.display = 'none';
+
+  if (tab === 'days') {
+    daysContainer.style.display = 'block';
+    strip.style.display = 'flex';
+    weekSel.style.display = 'block';
+  } else if (tab === 'shop') {
+    shopView.classList.add('active');
+  } else if (tab === 'recipes') {
+    recipesView.classList.add('active');
+  }
+}
+</script>
+</body>
+</html>
